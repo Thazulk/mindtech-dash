@@ -13,12 +13,16 @@ import {
   InputAdornment,
 } from "@mui/material";
 import { Search } from "@mui/icons-material";
+import { useParams, useNavigate } from "react-router";
 import { useUserContext } from "../hooks/useUserContext";
 import { type User } from "../api/users/services";
+import UserDetailsPage from "./UserDetailsPage";
 
 export default function UsersListPage() {
   const { users, isLoading, isError, error } = useUserContext();
   const [globalFilter, setGlobalFilter] = useState<string>("");
+  const { id } = useParams<{ id: string }>();
+  const navigate = useNavigate();
 
   // Define table columns
   const columns = useMemo<MRT_ColumnDef<User>[]>(
@@ -74,9 +78,15 @@ export default function UsersListPage() {
       pagination: { pageSize: 10, pageIndex: 0 },
       sorting: [{ id: "name", desc: false }],
     },
-    muiTableBodyRowProps: {
+    muiTableBodyRowProps: ({ row }) => ({
       hover: true,
-    },
+      sx: {
+        cursor: "pointer",
+      },
+      onClick: () => {
+        navigate(`/users/${row.original.id}`);
+      },
+    }),
     muiTableProps: {
       sx: {
         tableLayout: "fixed",
@@ -121,44 +131,49 @@ export default function UsersListPage() {
   }
 
   return (
-    <Box p={3}>
-      <Typography variant="h4" component="h1" gutterBottom>
-        Users
-      </Typography>
+    <>
+      <Box p={3}>
+        <Typography variant="h4" component="h1" gutterBottom>
+          Users
+        </Typography>
 
-      {/* Custom Search Input to filter users by name or email */}
-      <Box mb={3}>
-        <TextField
-          placeholder="Search users by name or email..."
-          value={globalFilter}
-          onChange={(e) => setGlobalFilter(e.target.value)}
-          variant="outlined"
-          fullWidth
-          slotProps={{
-            input: {
-              startAdornment: (
-                <InputAdornment position="start">
-                  <Search />
-                </InputAdornment>
-              ),
-            },
-          }}
-          sx={{ maxWidth: 400 }}
-        />
+        {/* Custom Search Input to filter users by name or email */}
+        <Box mb={3}>
+          <TextField
+            placeholder="Search users by name or email..."
+            value={globalFilter}
+            onChange={(e) => setGlobalFilter(e.target.value)}
+            variant="outlined"
+            fullWidth
+            slotProps={{
+              input: {
+                startAdornment: (
+                  <InputAdornment position="start">
+                    <Search />
+                  </InputAdornment>
+                ),
+              },
+            }}
+            sx={{ maxWidth: 400 }}
+          />
+        </Box>
+
+        {/* Material React Table */}
+        <MaterialReactTable table={table} />
+
+        {/* No results message */}
+        {globalFilter && filteredData.length === 0 && (
+          <Box mt={2}>
+            <Alert severity="info">
+              No users found matching "{globalFilter}". Try adjusting your
+              search terms.
+            </Alert>
+          </Box>
+        )}
       </Box>
 
-      {/* Material React Table */}
-      <MaterialReactTable table={table} />
-
-      {/* No results message */}
-      {globalFilter && filteredData.length === 0 && (
-        <Box mt={2}>
-          <Alert severity="info">
-            No users found matching "{globalFilter}". Try adjusting your search
-            terms.
-          </Alert>
-        </Box>
-      )}
-    </Box>
+      {/* Show user details dialog if id parameter exists */}
+      {id && <UserDetailsPage />}
+    </>
   );
 }

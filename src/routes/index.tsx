@@ -1,9 +1,8 @@
-import { createBrowserRouter } from "react-router";
+import { createBrowserRouter, Navigate } from "react-router";
 import App from "../App";
 import UsersListPage from "../pages/UsersListPage";
 import ErrorPage from "../pages/ErrorPage";
 import NotFoundPage from "../pages/notFoundPage";
-// import UserDetailsPage from "../pages/UserDetailsPage";
 
 export const router = createBrowserRouter([
   {
@@ -13,12 +12,17 @@ export const router = createBrowserRouter([
     children: [
       {
         index: true,
+        element: <Navigate to="/users" replace />,
+      },
+      {
+        path: "/users",
         element: <UsersListPage />,
       },
-      //   {
-      //     path: "/users/:id",
-      //     element: <UserDetailsPage />,
-      //   },
+      {
+        path: "/users/:id",
+        element: <UsersListPage />,
+      },
+
       {
         path: "*",
         element: <NotFoundPage />,
