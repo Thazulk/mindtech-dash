@@ -130,12 +130,14 @@ export default function UsersListPage() {
           onChange={(e) => setGlobalFilter(e.target.value)}
           variant="outlined"
           fullWidth
-          InputProps={{
-            startAdornment: (
-              <InputAdornment position="start">
-                <Search />
-              </InputAdornment>
-            ),
+          slotProps={{
+            input: {
+              startAdornment: (
+                <InputAdornment position="start">
+                  <Search />
+                </InputAdornment>
+              ),
+            },
           }}
           sx={{ maxWidth: 400 }}
         />
