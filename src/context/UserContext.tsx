@@ -1,24 +1,30 @@
-import React, { createContext } from "react";
+import React, { createContext, useState } from "react";
 import type { ReactNode } from "react";
-import { useUsersList } from "../hooks/useUsers";
+import { useUsersList, useUserById } from "../hooks/useUsers";
 import type { User } from "../api/users/services";
 
 // Context interface
 export interface UserContextType {
-  // User data
+  // Users List API
   users: User[];
+  usersLoading: boolean;
+  usersError: boolean;
+  usersErrorMessage: Error | null;
+  usersSuccess: boolean;
+  usersFetching: boolean;
+  refetchUsers: () => void;
 
-  // Query states
-  isLoading: boolean;
-  isError: boolean;
-  error: Error | null;
-
-  // Query status checks
-  isSuccess: boolean;
-  isFetching: boolean;
-
-  // Actions
-  refetch: () => void;
+  // User Details API
+  userDetails: User | null;
+  userDetailsLoading: boolean;
+  userDetailsError: boolean;
+  userDetailsErrorMessage: Error | null;
+  userDetailsSuccess: boolean;
+  userDetailsFetching: boolean;
+  fetchUserDetails: (userId: number) => void;
+  refetchUserDetails: () => void;
+  clearUserDetails: () => void;
+  currentUserId: number | null;
 }
 
 // Create context
@@ -34,34 +40,78 @@ interface UserProviderProps {
 
 // UserProvider component
 export const UserProvider: React.FC<UserProviderProps> = ({ children }) => {
-  // Use the existing TanStack Query hook
+  const [currentUserId, setCurrentUserId] = useState<number | null>(null);
+
+  // Users List API
   const {
     data: users = [],
-    isLoading,
-    isError,
-    error,
-    isSuccess,
-    isFetching,
-    refetch,
+    isLoading: usersLoading,
+    isError: usersError,
+    error: usersErrorMessage,
+    isSuccess: usersSuccess,
+    isFetching: usersFetching,
+    refetch: refetchUsersList,
   } = useUsersList({
     retry: 3, // Retry failed requests 3 times
     retryDelay: (attemptIndex) => Math.min(1000 * 2 ** attemptIndex, 30000), // Exponential backoff
   });
 
-  // Refetch wrapper to handle the return type
-  const handleRefetch = () => {
-    refetch();
+  // User Details API
+  const {
+    data: userDetails = null,
+    isLoading: userDetailsLoading,
+    isError: userDetailsError,
+    error: userDetailsErrorMessage,
+    isSuccess: userDetailsSuccess,
+    isFetching: userDetailsFetching,
+    refetch: refetchUserDetailsQuery,
+  } = useUserById(currentUserId || 0, {
+    retry: 3,
+    retryDelay: (attemptIndex) => Math.min(1000 * 2 ** attemptIndex, 30000),
+    enabled: !!currentUserId, // Only fetch when userId is set
+  });
+
+  // Action handlers
+  const handleRefetchUsers = () => {
+    refetchUsersList();
+  };
+
+  const handleFetchUserDetails = (userId: number) => {
+    setCurrentUserId(userId);
+  };
+
+  const handleRefetchUserDetails = () => {
+    if (currentUserId) {
+      refetchUserDetailsQuery();
+    }
+  };
+
+  const handleClearUserDetails = () => {
+    setCurrentUserId(null);
   };
 
   // Context value
   const contextValue: UserContextType = {
+    // Users List
     users,
-    isLoading,
-    isError,
-    error,
-    isSuccess,
-    isFetching,
-    refetch: handleRefetch,
+    usersLoading,
+    usersError,
+    usersErrorMessage,
+    usersSuccess,
+    usersFetching,
+    refetchUsers: handleRefetchUsers,
+
+    // User Details
+    userDetails,
+    userDetailsLoading,
+    userDetailsError,
+    userDetailsErrorMessage,
+    userDetailsSuccess,
+    userDetailsFetching,
+    fetchUserDetails: handleFetchUserDetails,
+    refetchUserDetails: handleRefetchUserDetails,
+    clearUserDetails: handleClearUserDetails,
+    currentUserId,
   };
 
   return (

@@ -11,18 +11,30 @@ import {
   CircularProgress,
   TextField,
   InputAdornment,
+  Button,
 } from "@mui/material";
-import { Search } from "@mui/icons-material";
+import { Search, Refresh } from "@mui/icons-material";
 import { useParams, useNavigate } from "react-router";
 import { useUserContext } from "../hooks/useUserContext";
 import { type User } from "../api/users/services";
 import UserDetailsPage from "./UserDetailsPage";
 
 export default function UsersListPage() {
-  const { users, isLoading, isError, error } = useUserContext();
+  const {
+    users,
+    usersLoading,
+    usersError,
+    usersErrorMessage,
+    refetchUsers,
+    usersFetching,
+  } = useUserContext();
   const [globalFilter, setGlobalFilter] = useState<string>("");
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
+
+  const handleRefetch = () => {
+    refetchUsers();
+  };
 
   // Define table columns
   const columns = useMemo<MRT_ColumnDef<User>[]>(
@@ -95,7 +107,7 @@ export default function UsersListPage() {
   });
 
   // Loading state
-  if (isLoading) {
+  if (usersLoading) {
     return (
       <Box
         display="flex"
@@ -114,17 +126,28 @@ export default function UsersListPage() {
   }
 
   // Error state
-  if (isError) {
+  if (usersError) {
     return (
       <Box p={3}>
         <Alert severity="error" sx={{ mb: 2 }}>
           <Typography variant="h6" gutterBottom>
             Error Loading Users
           </Typography>
-          <Typography variant="body2">
-            {error?.message ||
+          <Typography variant="body2" sx={{ mb: 2 }}>
+            {usersErrorMessage?.message ||
               "An unexpected error occurred while fetching users."}
           </Typography>
+          <Button
+            onClick={handleRefetch}
+            color="primary"
+            variant="contained"
+            disabled={usersFetching}
+            startIcon={
+              usersFetching ? <CircularProgress size={16} /> : <Refresh />
+            }
+          >
+            {usersFetching ? "Retrying..." : "Retry"}
+          </Button>
         </Alert>
       </Box>
     );
@@ -133,9 +156,27 @@ export default function UsersListPage() {
   return (
     <>
       <Box p={3}>
-        <Typography variant="h4" component="h1" gutterBottom>
-          Users
-        </Typography>
+        <Box
+          display="flex"
+          justifyContent="space-between"
+          alignItems="center"
+          mb={3}
+        >
+          <Typography variant="h4" component="h1">
+            Users
+          </Typography>
+          <Button
+            onClick={handleRefetch}
+            color="primary"
+            variant="outlined"
+            disabled={usersFetching}
+            startIcon={
+              usersFetching ? <CircularProgress size={16} /> : <Refresh />
+            }
+          >
+            {usersFetching ? "Refreshing..." : "Refresh"}
+          </Button>
+        </Box>
 
         {/* Custom Search Input to filter users by name or email */}
         <Box mb={3}>

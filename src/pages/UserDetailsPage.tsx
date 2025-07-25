@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useState, useEffect } from "react";
 import {
   Dialog,
   DialogTitle,
@@ -12,31 +12,53 @@ import {
   Divider,
   Chip,
 } from "@mui/material";
+import { Refresh } from "@mui/icons-material";
 import { useParams, useNavigate } from "react-router";
 import { useUserContext } from "../hooks/useUserContext";
-import { type User } from "../api/users/services";
 
 export default function UserDetailsPage() {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
-  const { users, isLoading } = useUserContext();
-  const [user, setUser] = useState<User | null>(null);
   const [open, setOpen] = useState(true);
 
+  const {
+    userDetails,
+    userDetailsLoading,
+    userDetailsError,
+    userDetailsErrorMessage,
+    userDetailsFetching,
+    fetchUserDetails,
+    refetchUserDetails,
+    clearUserDetails,
+  } = useUserContext();
+
+  // Fetch user details when component mounts or id changes
   useEffect(() => {
-    if (id && users) {
-      const foundUser = users.find((u) => u.id.toString() === id);
-      setUser(foundUser || null);
+    if (id) {
+      const userId = parseInt(id, 10);
+      if (!isNaN(userId)) {
+        fetchUserDetails(userId);
+      }
     }
-  }, [id, users]);
+
+    // Cleanup when component unmounts
+    return () => {
+      clearUserDetails();
+    };
+  }, [id, fetchUserDetails, clearUserDetails]);
 
   const handleClose = () => {
     setOpen(false);
+    clearUserDetails();
     // Navigate back to users list
     navigate("/users");
   };
 
-  if (isLoading) {
+  const handleRefetch = () => {
+    refetchUserDetails();
+  };
+
+  if (userDetailsLoading) {
     return (
       <Dialog open={open} onClose={handleClose} maxWidth="sm" fullWidth>
         <DialogContent>
@@ -57,16 +79,60 @@ export default function UserDetailsPage() {
     );
   }
 
-  if (!user) {
+  // Error state with retry functionality
+  if (userDetailsError) {
+    return (
+      <Dialog open={open} onClose={handleClose} maxWidth="sm" fullWidth>
+        <DialogTitle>Error Loading User</DialogTitle>
+        <DialogContent>
+          <Alert severity="error" sx={{ mb: 2 }}>
+            {userDetailsErrorMessage?.message ||
+              "Failed to load user data. Please check your connection and try again."}
+          </Alert>
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={handleClose} color="secondary">
+            Close
+          </Button>
+          <Button
+            onClick={handleRefetch}
+            color="primary"
+            variant="contained"
+            disabled={userDetailsFetching}
+            startIcon={
+              userDetailsFetching ? <CircularProgress size={16} /> : <Refresh />
+            }
+          >
+            {userDetailsFetching ? "Retrying..." : "Retry"}
+          </Button>
+        </DialogActions>
+      </Dialog>
+    );
+  }
+
+  if (!userDetails) {
     return (
       <Dialog open={open} onClose={handleClose} maxWidth="sm" fullWidth>
         <DialogTitle>User Not Found</DialogTitle>
         <DialogContent>
-          <Alert severity="error">User with ID "{id}" was not found.</Alert>
+          <Alert severity="error" sx={{ mb: 2 }}>
+            User with ID "{id}" was not found.
+          </Alert>
         </DialogContent>
         <DialogActions>
-          <Button onClick={handleClose} color="primary">
+          <Button onClick={handleClose} color="secondary">
             Close
+          </Button>
+          <Button
+            onClick={handleRefetch}
+            color="primary"
+            variant="outlined"
+            disabled={userDetailsFetching}
+            startIcon={
+              userDetailsFetching ? <CircularProgress size={16} /> : <Refresh />
+            }
+          >
+            {userDetailsFetching ? "Refreshing..." : "Refresh Data"}
           </Button>
         </DialogActions>
       </Dialog>
@@ -76,12 +142,33 @@ export default function UserDetailsPage() {
   return (
     <Dialog open={open} onClose={handleClose} maxWidth="md" fullWidth>
       <DialogTitle>
-        <Typography variant="h4" component="div">
-          {user.name}
-        </Typography>
-        <Typography variant="subtitle1" color="text.secondary">
-          @{user.username}
-        </Typography>
+        <Box
+          display="flex"
+          justifyContent="space-between"
+          alignItems="flex-start"
+        >
+          <Box>
+            <Typography variant="h4" component="div">
+              {userDetails.name}
+            </Typography>
+            <Typography variant="subtitle1" color="text.secondary">
+              @{userDetails.username}
+            </Typography>
+          </Box>
+          <Button
+            onClick={handleRefetch}
+            color="primary"
+            variant="outlined"
+            size="small"
+            disabled={userDetailsFetching}
+            startIcon={
+              userDetailsFetching ? <CircularProgress size={16} /> : <Refresh />
+            }
+            sx={{ ml: 2, flexShrink: 0 }}
+          >
+            {userDetailsFetching ? "Refreshing..." : "Refresh"}
+          </Button>
+        </Box>
       </DialogTitle>
 
       <DialogContent>
@@ -94,13 +181,13 @@ export default function UserDetailsPage() {
             <Divider sx={{ mb: 2 }} />
             <Box display="flex" flexDirection="column" gap={1}>
               <Typography variant="body1">
-                <strong>Email:</strong> {user.email}
+                <strong>Email:</strong> {userDetails.email}
               </Typography>
               <Typography variant="body1">
-                <strong>Phone:</strong> {user.phone}
+                <strong>Phone:</strong> {userDetails.phone}
               </Typography>
               <Typography variant="body1">
-                <strong>Website:</strong> {user.website}
+                <strong>Website:</strong> {userDetails.website}
               </Typography>
             </Box>
           </Box>
@@ -119,14 +206,14 @@ export default function UserDetailsPage() {
               <Divider sx={{ mb: 2 }} />
               <Box display="flex" flexDirection="column" gap={1}>
                 <Typography variant="body2">
-                  {user.address.street}, {user.address.suite}
+                  {userDetails.address.street}, {userDetails.address.suite}
                 </Typography>
                 <Typography variant="body2">
-                  {user.address.city}, {user.address.zipcode}
+                  {userDetails.address.city}, {userDetails.address.zipcode}
                 </Typography>
                 <Typography variant="body2">
-                  <strong>Coordinates:</strong> {user.address.geo.lat},{" "}
-                  {user.address.geo.lng}
+                  <strong>Coordinates:</strong> {userDetails.address.geo.lat},{" "}
+                  {userDetails.address.geo.lng}
                 </Typography>
               </Box>
             </Box>
@@ -139,13 +226,14 @@ export default function UserDetailsPage() {
               <Divider sx={{ mb: 2 }} />
               <Box display="flex" flexDirection="column" gap={1}>
                 <Typography variant="body2">
-                  <strong>Name:</strong> {user.company.name}
+                  <strong>Name:</strong> {userDetails.company.name}
                 </Typography>
                 <Typography variant="body2">
-                  <strong>Catchphrase:</strong> {user.company.catchPhrase}
+                  <strong>Catchphrase:</strong>{" "}
+                  {userDetails.company.catchPhrase}
                 </Typography>
                 <Typography variant="body2">
-                  <strong>Business:</strong> {user.company.bs}
+                  <strong>Business:</strong> {userDetails.company.bs}
                 </Typography>
               </Box>
             </Box>
@@ -156,7 +244,7 @@ export default function UserDetailsPage() {
             <Typography variant="body2" color="text.secondary">
               User ID:
             </Typography>
-            <Chip label={user.id} size="small" variant="outlined" />
+            <Chip label={userDetails.id} size="small" variant="outlined" />
           </Box>
         </Box>
       </DialogContent>
