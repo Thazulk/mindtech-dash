@@ -13,11 +13,12 @@ import {
   InputAdornment,
   Button,
 } from "@mui/material";
-import { Search, Refresh } from "@mui/icons-material";
+import { Search, Refresh, Add } from "@mui/icons-material";
 import { useParams, useNavigate } from "react-router";
 import { useUserContext } from "../hooks/useUserContext";
 import { type User } from "../api/users/services";
 import UserDetailsPage from "./UserDetailsPage";
+import AddUserDialog from "../components/AddUserDialog";
 
 export default function UsersListPage() {
   const {
@@ -29,11 +30,20 @@ export default function UsersListPage() {
     usersFetching,
   } = useUserContext();
   const [globalFilter, setGlobalFilter] = useState<string>("");
+  const [addUserDialogOpen, setAddUserDialogOpen] = useState(false);
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
 
   const handleRefetch = () => {
     refetchUsers();
+  };
+
+  const handleOpenAddDialog = () => {
+    setAddUserDialogOpen(true);
+  };
+
+  const handleCloseAddDialog = () => {
+    setAddUserDialogOpen(false);
   };
 
   // Define table columns
@@ -178,14 +188,13 @@ export default function UsersListPage() {
           </Button>
         </Box>
 
-        {/* Custom Search Input to filter users by name or email */}
-        <Box mb={3}>
+        {/* Search Input and Add User Button */}
+        <Box mb={3} display="flex" gap={2} alignItems="center">
           <TextField
             placeholder="Search users by name or email..."
             value={globalFilter}
             onChange={(e) => setGlobalFilter(e.target.value)}
             variant="outlined"
-            fullWidth
             slotProps={{
               input: {
                 startAdornment: (
@@ -195,8 +204,17 @@ export default function UsersListPage() {
                 ),
               },
             }}
-            sx={{ maxWidth: 400 }}
+            sx={{ maxWidth: 400, flexGrow: 1 }}
           />
+          <Button
+            onClick={handleOpenAddDialog}
+            color="primary"
+            variant="contained"
+            startIcon={<Add />}
+            sx={{ flexShrink: 0 }}
+          >
+            Add User
+          </Button>
         </Box>
 
         {/* Material React Table */}
@@ -215,6 +233,9 @@ export default function UsersListPage() {
 
       {/* Show user details dialog if id parameter exists */}
       {id && <UserDetailsPage />}
+
+      {/* Add User Dialog */}
+      <AddUserDialog open={addUserDialogOpen} onClose={handleCloseAddDialog} />
     </>
   );
 }

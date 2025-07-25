@@ -25,6 +25,9 @@ export interface UserContextType {
   refetchUserDetails: () => void;
   clearUserDetails: () => void;
   currentUserId: number | null;
+
+  // Local user management
+  addUser: (user: Omit<User, "id">) => void;
 }
 
 // Create context
@@ -41,10 +44,11 @@ interface UserProviderProps {
 // UserProvider component
 export const UserProvider: React.FC<UserProviderProps> = ({ children }) => {
   const [currentUserId, setCurrentUserId] = useState<number | null>(null);
+  const [localUsers, setLocalUsers] = useState<User[]>([]);
 
   // Users List API
   const {
-    data: users = [],
+    data: apiUsers = [],
     isLoading: usersLoading,
     isError: usersError,
     error: usersErrorMessage,
@@ -55,6 +59,9 @@ export const UserProvider: React.FC<UserProviderProps> = ({ children }) => {
     retry: 3, // Retry failed requests 3 times
     retryDelay: (attemptIndex) => Math.min(1000 * 2 ** attemptIndex, 30000), // Exponential backoff
   });
+
+  // Combine API users with local users
+  const allUsers = [...apiUsers, ...localUsers];
 
   // User Details API
   const {
@@ -90,10 +97,21 @@ export const UserProvider: React.FC<UserProviderProps> = ({ children }) => {
     setCurrentUserId(null);
   };
 
+  const handleAddUser = (newUser: Omit<User, "id">) => {
+    // Generate a new ID based on the highest existing ID
+    const highestId = Math.max(...allUsers.map((user) => user.id), 0);
+    const userWithId: User = {
+      ...newUser,
+      id: highestId + 1,
+    };
+
+    setLocalUsers((prev) => [...prev, userWithId]);
+  };
+
   // Context value
   const contextValue: UserContextType = {
     // Users List
-    users,
+    users: allUsers,
     usersLoading,
     usersError,
     usersErrorMessage,
@@ -112,6 +130,9 @@ export const UserProvider: React.FC<UserProviderProps> = ({ children }) => {
     refetchUserDetails: handleRefetchUserDetails,
     clearUserDetails: handleClearUserDetails,
     currentUserId,
+
+    // Local user management
+    addUser: handleAddUser,
   };
 
   return (
