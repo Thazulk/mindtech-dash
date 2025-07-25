@@ -1,6 +1,7 @@
 import { Outlet } from "react-router";
 import { ThemeProvider, createTheme } from "@mui/material/styles";
 import CssBaseline from "@mui/material/CssBaseline";
+import { UserProvider } from "./context/UserContext";
 
 const darkTheme = createTheme({
   palette: {
@@ -12,11 +13,11 @@ function App() {
   return (
     <ThemeProvider theme={darkTheme}>
       <CssBaseline />
-      <div className="app">
+      <UserProvider>
         <main>
           <Outlet />
         </main>
-      </div>
+      </UserProvider>
     </ThemeProvider>
   );
 }
