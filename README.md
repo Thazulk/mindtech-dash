@@ -68,4 +68,4 @@ To serve locally after installation:
 npm run dev
 ```
 
-This will create a local dev server and expose it at the default URL: http://localhost:5174
+This will create a local dev server and expose it at the default URL listed at successful dev build and serve process.
