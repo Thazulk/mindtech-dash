@@ -64,6 +64,10 @@ export default function UsersListPage() {
     data: filteredData,
     enableGlobalFilter: false, // We'll use our custom search
     enableColumnFilters: false,
+    enableColumnActions: false,
+    enableFullScreenToggle: false, // Hide full screen toggle button
+    enableHiding: false, // Hide column hiding button
+    enableDensityToggle: false, // Hide density toggle button
     enableSorting: true,
     enablePagination: true,
     initialState: {
