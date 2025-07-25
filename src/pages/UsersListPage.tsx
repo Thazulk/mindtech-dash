@@ -2,7 +2,6 @@ import { useMemo, useState } from "react";
 import {
   MaterialReactTable,
   type MRT_ColumnDef,
-  type MRT_GlobalFilterTextField,
   useMaterialReactTable,
 } from "material-react-table";
 import {
@@ -14,13 +13,12 @@ import {
   InputAdornment,
 } from "@mui/material";
 import { Search } from "@mui/icons-material";
-import { useUsersList } from "../hooks/useUsers";
+import { useUserContext } from "../hooks/useUserContext";
 import { type User } from "../api/users/services";
 
 export default function UsersListPage() {
-  const { data, isLoading, error } = useUsersList();
-  const [globalFilter, setGlobalFilter] =
-    useState<typeof MRT_GlobalFilterTextField>("");
+  const { users, isLoading, isError, error } = useUserContext();
+  const [globalFilter, setGlobalFilter] = useState<string>("");
 
   // Define table columns
   const columns = useMemo<MRT_ColumnDef<User>[]>(
@@ -51,15 +49,15 @@ export default function UsersListPage() {
 
   // Filter function for search (case-insensitive search by name or email)
   const filteredData = useMemo(() => {
-    if (!data || !globalFilter) return data || [];
+    if (!users || !globalFilter) return users || [];
 
     const searchTerm = globalFilter.toLowerCase();
-    return data.filter(
+    return users.filter(
       (user) =>
         user.name.toLowerCase().includes(searchTerm) ||
         user.email.toLowerCase().includes(searchTerm)
     );
-  }, [data, globalFilter]);
+  }, [users, globalFilter]);
 
   const table = useMaterialReactTable({
     columns,
@@ -102,7 +100,7 @@ export default function UsersListPage() {
   }
 
   // Error state
-  if (error) {
+  if (isError) {
     return (
       <Box p={3}>
         <Alert severity="error" sx={{ mb: 2 }}>
@@ -110,7 +108,7 @@ export default function UsersListPage() {
             Error Loading Users
           </Typography>
           <Typography variant="body2">
-            {error.message ||
+            {error?.message ||
               "An unexpected error occurred while fetching users."}
           </Typography>
         </Alert>
@@ -124,7 +122,7 @@ export default function UsersListPage() {
         Users
       </Typography>
 
-      {/* Custom Search Input */}
+      {/* Custom Search Input to filter users by name or email */}
       <Box mb={3}>
         <TextField
           placeholder="Search users by name or email..."
