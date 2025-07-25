@@ -213,7 +213,7 @@ export default function UsersListPage() {
             startIcon={<Add />}
             sx={{ flexShrink: 0 }}
           >
-            Add User
+            Create New User
           </Button>
         </Box>
 
