@@ -10,7 +10,6 @@ import {
   CircularProgress,
   Alert,
   Divider,
-  Chip,
 } from "@mui/material";
 import { Refresh } from "@mui/icons-material";
 import { useParams, useNavigate } from "react-router";
@@ -140,7 +139,7 @@ export default function UserDetailsPage() {
   }
 
   return (
-    <Dialog open={open} onClose={handleClose} maxWidth="md" fullWidth>
+    <Dialog open={open} onClose={handleClose} maxWidth="sm" fullWidth>
       <DialogTitle>
         <Box
           display="flex"
@@ -172,79 +171,28 @@ export default function UserDetailsPage() {
       </DialogTitle>
 
       <DialogContent>
-        <Box display="flex" flexDirection="column" gap={3}>
-          {/* Basic Information */}
-          <Box>
-            <Typography variant="h6" gutterBottom>
-              Contact Information
+        <Box display="flex" flexDirection="column" gap={2}>
+          <Typography variant="h6" gutterBottom>
+            User Details
+          </Typography>
+          <Divider />
+
+          <Box display="flex" flexDirection="column" gap={1.5}>
+            <Typography variant="body1">
+              <strong>Email:</strong> {userDetails.email}
             </Typography>
-            <Divider sx={{ mb: 2 }} />
-            <Box display="flex" flexDirection="column" gap={1}>
-              <Typography variant="body1">
-                <strong>Email:</strong> {userDetails.email}
-              </Typography>
-              <Typography variant="body1">
-                <strong>Phone:</strong> {userDetails.phone}
-              </Typography>
-              <Typography variant="body1">
-                <strong>Website:</strong> {userDetails.website}
-              </Typography>
-            </Box>
-          </Box>
-
-          {/* Address and Company Information */}
-          <Box
-            display="flex"
-            flexDirection={{ xs: "column", md: "row" }}
-            gap={3}
-          >
-            {/* Address Information */}
-            <Box flex={1}>
-              <Typography variant="h6" gutterBottom>
-                Address
-              </Typography>
-              <Divider sx={{ mb: 2 }} />
-              <Box display="flex" flexDirection="column" gap={1}>
-                <Typography variant="body2">
-                  {userDetails.address.street}, {userDetails.address.suite}
-                </Typography>
-                <Typography variant="body2">
-                  {userDetails.address.city}, {userDetails.address.zipcode}
-                </Typography>
-                <Typography variant="body2">
-                  <strong>Coordinates:</strong> {userDetails.address.geo.lat},{" "}
-                  {userDetails.address.geo.lng}
-                </Typography>
-              </Box>
-            </Box>
-
-            {/* Company Information */}
-            <Box flex={1}>
-              <Typography variant="h6" gutterBottom>
-                Company
-              </Typography>
-              <Divider sx={{ mb: 2 }} />
-              <Box display="flex" flexDirection="column" gap={1}>
-                <Typography variant="body2">
-                  <strong>Name:</strong> {userDetails.company.name}
-                </Typography>
-                <Typography variant="body2">
-                  <strong>Catchphrase:</strong>{" "}
-                  {userDetails.company.catchPhrase}
-                </Typography>
-                <Typography variant="body2">
-                  <strong>Business:</strong> {userDetails.company.bs}
-                </Typography>
-              </Box>
-            </Box>
-          </Box>
-
-          {/* User ID */}
-          <Box display="flex" alignItems="center" gap={1}>
-            <Typography variant="body2" color="text.secondary">
-              User ID:
+            <Typography variant="body1">
+              <strong>Phone:</strong> {userDetails.phone}
             </Typography>
-            <Chip label={userDetails.id} size="small" variant="outlined" />
+            <Typography variant="body1">
+              <strong>Website:</strong> {userDetails.website}
+            </Typography>
+            <Typography variant="body1">
+              <strong>Company:</strong> {userDetails.company.name}
+            </Typography>
+            <Typography variant="body1">
+              <strong>City:</strong> {userDetails.address.city}
+            </Typography>
           </Box>
         </Box>
       </DialogContent>
